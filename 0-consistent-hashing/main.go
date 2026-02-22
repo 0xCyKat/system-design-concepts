@@ -2,32 +2,52 @@ package main
 
 import (
 	"consistent_hashing/database"
-	"crypto/sha256"
 	"fmt"
+
+	"github.com/kpechenenko/rword"
 )
 
 func main() {
-	dbm := &database.DBManager{
-		Databases: map[int]*database.Database{},
-		Hasher:    sha256.New(),
+
+	dbm := database.Init()
+
+	for i := 0; i <= 4; i++ {
+		db := database.Database{
+			IP:   fmt.Sprintf("10.0.0.%d", i),
+			Data: map[string]string{},
+		}
+
+		dbm.AddDatabase(db)
 	}
 
-	db1 := database.Database{
-		IP:   "10.0.0.1",
+	fmt.Println(dbm.GetSorted())
+
+	gen, _ := rword.New()
+	words := gen.WordList(50)
+
+	for _, word := range words {
+		dbm.InsertData(word, word+"_value")
+		fmt.Println(dbm.GetData(word))
+	}
+
+	dbm.RemoveDatabase("10.0.0.4")
+
+	fmt.Println("---------------- Removed Database ----------------")
+
+	for _, word := range words {
+		fmt.Println(dbm.GetData(word))
+	}
+
+	db0 := database.Database{
+		IP:   "10.0.0.4",
 		Data: map[string]string{},
 	}
 
-	db2 := database.Database{
-		IP:   "10.0.0.2",
-		Data: map[string]string{},
+	dbm.AddDatabase(db0)
+
+	fmt.Println("---------------- Reverted ----------------")
+
+	for _, word := range words {
+		fmt.Println(dbm.GetData(word))
 	}
-
-	dbm.AddDatabase(db1)
-	dbm.AddDatabase(db2)
-
-	dbm.InsertData("name", "sai_srinivas")
-	fmt.Println(dbm.GetData("name"))
-
-	dbm.InsertData("age", "22")
-	fmt.Println(dbm.GetData("age"))
 }
