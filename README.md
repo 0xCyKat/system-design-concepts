@@ -3,6 +3,7 @@
 Practical implementations of core system design concepts.
 ## Concepts Covered
 
-1. Consistent Hashing
-2. Rate Limiter
+0. Consistent Hashing
+1. Rate Limiter
    - Token Bucket Algorithm
+2. URL Shortener
