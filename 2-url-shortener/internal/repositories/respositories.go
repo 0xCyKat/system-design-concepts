@@ -36,14 +36,7 @@ func (r *Repository) CheckHashRepository(ctx context.Context, hash string) (*mod
 	var obj models.URL
 	err := r.db.QueryRow(ctx, "SELECT hash, long_url FROM url WHERE hash = $1", hash).Scan(&obj.Hash, &obj.LongURL)
 
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, errors.New("hash doesn't exist")
-		}
-		return nil, err
-	}
-
-	return &obj, nil
+	return &obj, err
 }
 
 func (r *Repository) CreateURLRepository(ctx context.Context, hash, longURL string) error {

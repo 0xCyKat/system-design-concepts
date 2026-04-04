@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"errors"
-	"sd_concepts/url_shortener/internal/models"
 	"sd_concepts/url_shortener/internal/repositories"
 )
 
@@ -22,17 +21,29 @@ func (svc *Service) GetUrlService(ctx context.Context, hash string) (string, err
 }
 
 func (svc *Service) CreateURLService(ctx context.Context, longUrl string) (string, error) {
-	url, _ := svc.checkHashExists(ctx, longUrl)
-	if url != nil && url.LongURL == longUrl {
-		return url.Hash, errors.New("already exists")
+	baseHash := getHash(longUrl)
+
+	existing, err := svc.repo.CheckHashRepository(ctx, baseHash)
+	if err == nil && existing != nil {
+		if existing.LongURL == longUrl {
+			return existing.Hash, nil
+		}
+
+		saltedHash := getHash("mod" + longUrl)
+
+		existingSalted, errSalted := svc.repo.CheckHashRepository(ctx, saltedHash)
+		if errSalted == nil && existingSalted != nil {
+			return "", errors.New("salted collision occurred")
+		}
+
+		if err := svc.repo.CreateURLRepository(ctx, saltedHash, longUrl); err != nil {
+			return "", err
+		}
+		return saltedHash, nil
 	}
 
-	newUrl := "mod" + longUrl
-	hash := getHash(newUrl)
-	return hash, svc.repo.CreateURLRepository(ctx, hash, longUrl)
-}
-
-func (svc *Service) checkHashExists(ctx context.Context, longUrl string) (*models.URL, error) {
-	hash := getHash(longUrl)
-	return svc.repo.CheckHashRepository(ctx, hash)
+	if err := svc.repo.CreateURLRepository(ctx, baseHash, longUrl); err != nil {
+		return "", err
+	}
+	return baseHash, nil
 }

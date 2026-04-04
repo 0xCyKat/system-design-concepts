@@ -54,12 +54,7 @@ func (ctl *Controller) PostHandler(c *gin.Context) {
 	hash, err := ctl.svc.CreateURLService(c.Request.Context(), req.URL)
 
 	if err != nil {
-		code := http.StatusInternalServerError
-		if err.Error() == "already exists" {
-			code = http.StatusConflict
-		}
-
-		c.JSON(code, gin.H{
+		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
