@@ -7,3 +7,5 @@ Practical implementations of core system design concepts.
 1. Rate Limiter
    - Token Bucket Algorithm
 2. URL Shortener
+3. Unique ID Generator
+   - Twitter Snowflake Approach
